@@ -1,24 +1,18 @@
 import * as Y from "yjs";
-import { WebsocketProvider } from "y-websocket";
 import { CodemirrorBinding } from "y-codemirror";
 import CodeMirror from "codemirror";
 import "codemirror/mode/javascript/javascript";
 import "codemirror/lib/codemirror.css";
+import io from "socket.io-client";
 
 const editorElement = document.getElementById("editor");
 const outputElement = document.getElementById("output");
 const languageSelect = document.getElementById("language-select");
 const runButton = document.getElementById("run-button");
 
-// Initialize Yjs document and websocket provider
+// Initialize Yjs document
 const ydoc = new Y.Doc();
-
-const provider = new WebsocketProvider(
-  "ws://localhost:1234",
-  "editor-room",
-  ydoc
-);
-const yText = ydoc.getText("codemirror");
+const socket = io();
 
 // Initialize CodeMirror
 window.editor = CodeMirror(editorElement, {
@@ -27,8 +21,28 @@ window.editor = CodeMirror(editorElement, {
   theme: "default",
 });
 
+const yText = ydoc.getText("codemirror");
+
 // Bind Yjs document to CodeMirror
-const binding = new CodemirrorBinding(yText, window.editor, provider.awareness);
+const binding = new CodemirrorBinding(yText, window.editor);
+
+// Join a room and sync the Yjs document
+const openEditorButton = document.getElementById("open-editor");
+openEditorButton.addEventListener("click", () => {
+  socket.emit("joinRoom", "room1");
+
+  socket.on("syncDoc", (update) => {
+    Y.applyUpdate(ydoc, new Uint8Array(update));
+  });
+
+  socket.on("docUpdate", (update) => {
+    Y.applyUpdate(ydoc, new Uint8Array(update));
+  });
+
+  ydoc.on("update", (update) => {
+    socket.emit("docUpdate", Array.from(update));
+  });
+});
 
 // Change language mode based on selection
 languageSelect.addEventListener("change", () => {
@@ -49,31 +63,7 @@ runButton.addEventListener("click", () => {
   socket.emit("runCode", code, language);
 });
 
-const socket = io();
 // Receiving output from the server
 socket.on("output", (output) => {
   outputElement.innerHTML = output.replace(/\n/g, "<br>");
-});
-
-const openEditorButton = document.getElementById("open-editor");
-
-openEditorButton.addEventListener("click", () => {
-  socket.emit("joinRoom", "room1");
-});
-
-socket.on("codeUpdate", (code) => {
-  //   if (
-  //     window.editor &&
-  //     !window.editor.hasFocus() &&
-  //     window.editor.getValue() !== code
-  //   ) {
-  //     window.isUpdating = true;
-  //     window.editor.setValue(code);
-  //     window.isUpdating = false;
-  //   }
-  if (window.editor && window.editor.getValue() !== code) {
-    window.isUpdating = true;
-    window.editor.setValue(code);
-    window.isUpdating = false;
-  }
 });
