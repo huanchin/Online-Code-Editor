@@ -1,0 +1,21 @@
+{
+  "name": "collab",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "watch": "vite build --watch",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  },
+  "dependencies": {
+    "codemirror": "^5.59.0",
+    "y-codemirror": "^3.0.1",
+    "y-websocket": "^2.0.3",
+    "yjs": "^13.6.18"
+  }
+}

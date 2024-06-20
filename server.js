@@ -7,18 +7,10 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-app.use(express.static("public"));
+app.use(express.static("collab/dist"));
 
 io.on("connection", (socket) => {
   console.log("New client connected:", socket.id);
-
-  socket.on("joinRoom", (room) => {
-    socket.join(room);
-  });
-
-  socket.on("codeChange", (code) => {
-    io.to("room1").emit("codeUpdate", code);
-  });
 
   socket.on("runCode", (code, language) => {
     let command;
@@ -34,7 +26,6 @@ io.on("connection", (socket) => {
           /"/g,
           '\\"'
         )}'"`;
-
         break;
       case "cpp":
         const fs = require("fs");
@@ -52,7 +43,6 @@ io.on("connection", (socket) => {
         socket.emit("output", stderr);
         return;
       }
-      console.log(stdout);
       socket.emit("output", stdout);
     });
   });

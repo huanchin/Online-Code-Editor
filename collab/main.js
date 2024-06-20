@@ -1,3 +1,10 @@
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+import { CodemirrorBinding } from "y-codemirror";
+import CodeMirror from "codemirror";
+import "codemirror/mode/javascript/javascript";
+import "codemirror/lib/codemirror.css";
+
 const editorElement = document.getElementById("editor");
 const outputElement = document.getElementById("output");
 const languageSelect = document.getElementById("language-select");
@@ -5,6 +12,7 @@ const runButton = document.getElementById("run-button");
 
 // Initialize Yjs document and websocket provider
 const ydoc = new Y.Doc();
+
 const provider = new WebsocketProvider(
   "ws://localhost:1234",
   "editor-room",
@@ -41,7 +49,31 @@ runButton.addEventListener("click", () => {
   socket.emit("runCode", code, language);
 });
 
+const socket = io();
 // Receiving output from the server
 socket.on("output", (output) => {
   outputElement.innerHTML = output.replace(/\n/g, "<br>");
+});
+
+const openEditorButton = document.getElementById("open-editor");
+
+openEditorButton.addEventListener("click", () => {
+  socket.emit("joinRoom", "room1");
+});
+
+socket.on("codeUpdate", (code) => {
+  //   if (
+  //     window.editor &&
+  //     !window.editor.hasFocus() &&
+  //     window.editor.getValue() !== code
+  //   ) {
+  //     window.isUpdating = true;
+  //     window.editor.setValue(code);
+  //     window.isUpdating = false;
+  //   }
+  if (window.editor && window.editor.getValue() !== code) {
+    window.isUpdating = true;
+    window.editor.setValue(code);
+    window.isUpdating = false;
+  }
 });

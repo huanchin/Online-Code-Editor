@@ -1,3 +1,12 @@
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+import { CodemirrorBinding } from "y-codemirror";
+import CodeMirror from "codemirror";
+import "codemirror/mode/javascript/javascript";
+import "codemirror/mode/python/python";
+import "codemirror/mode/clike/clike";
+import "codemirror/lib/codemirror.css";
+
 const editorElement = document.getElementById("editor");
 const outputElement = document.getElementById("output");
 const languageSelect = document.getElementById("language-select");
